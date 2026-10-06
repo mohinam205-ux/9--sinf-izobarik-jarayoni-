@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9-Sinf Fizika: Izobarik Jarayon Simulyatsiyasi</title>
+<style>
+:root{--bg:#f4f7f9;--card:#fff;--primary:#4a90e2;--dark:#357abd;--accent:#e74c3c;--text:#2c3e50;--muted:#6c7a89;--radius:12px;--shadow:0 8px 24px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+body{background:var(--bg);color:var(--text);line-height:1.6;padding:20px;max-width:1400px;margin:auto}
+header{text-align:center;margin-bottom:25px;padding:20px;background:linear-gradient(135deg,#4a90e2,#50e3c2);color:#fff;border-radius:var(--radius);box-shadow:var(--shadow)}
+header h1{font-size:2.2rem;margin-bottom:8px} header p{font-size:1.1rem}
+.main-layout{display:grid;grid-template-columns:1fr;gap:25px}
+@media(min-width:992px){.main-layout{grid-template-columns:1fr 1fr}}
+.card{background:rgba(255,255,255,.96);padding:25px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(0,0,0,.05)}
+.simulation-container,.theory-section{display:flex;flex-direction:column;gap:20px}
+.canvases-wrapper{display:flex;flex-wrap:wrap;gap:15px;justify-content:center}
+canvas{background:#fff;border-radius:8px;border:1px solid #e1e8ed;max-width:100%}
+.controls{background:#f8fafc;padding:20px;border-radius:8px;border:1px solid #e2e8f0}
+.control-group{margin-bottom:15px}.control-group label{display:block;font-weight:600;margin-bottom:8px}
+.slider-container{display:flex;align-items:center;gap:15px}
+input[type=range]{flex:1;height:8px;accent-color:var(--accent)}
+.temp-value{font-weight:bold;font-size:1.1rem;min-width:70px;color:var(--accent)}
+.metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:15px}
+.metric-card{background:#fff;padding:12px;border-radius:6px;border-left:4px solid var(--primary);box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.metric-card.work{border-left-color:#2ecc71}.metric-card .title{font-size:.85rem;color:var(--muted);text-transform:uppercase}
+.metric-card .value{font-size:1.2rem;font-weight:bold;margin-top:4px}
+.plan-item{border-bottom:1px solid #edf2f7;padding-bottom:15px}.plan-item:last-child{border-bottom:none}
+.plan-item h2{color:var(--dark);font-size:1.3rem;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.plan-item h2 span{background:var(--primary);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.formula-box{background:#f1f5f9;padding:12px;border-radius:6px;text-align:center;font-family:'Times New Roman',serif;font-size:1.25rem;font-style:italic;margin:10px 0;border:1px dashed #cbd5e1}
+.highlight{background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:500}
+ul{margin-left:20px;margin-top:8px}li{margin-bottom:6px}
+@media(max-width:600px){body{padding:10px}header h1{font-size:1.5rem}.card{padding:15px}.metrics-grid{grid-template-columns:1fr 1fr}canvas{width:100%;height:auto}}
+</style>
+</head>
+<body>
+<header>
+<h1>9-Sinf Fizika: Izobarik Jarayon</h1>
+<p>Interaktiv simulyatsiya va dars konspekti</p>
+</header>
+
+<div class="main-layout">
+<div class="card simulation-container">
+<h2>Interaktiv simulyatsiya</h2>
+<div class="canvases-wrapper">
+<div>
+<p style="text-align:center;font-weight:600;font-size:.9rem;margin-bottom:4px">Gaz silindri va porshen</p>
+<canvas id="pistonCanvas" width="280" height="320"></canvas>
+</div>
+<div>
+<p style="text-align:center;font-weight:600;font-size:.9rem;margin-bottom:4px">V–T grafigi (izobara)</p>
+<canvas id="graphCanvas" width="280" height="320"></canvas>
+</div>
+</div>
+<div class="controls">
+<div class="control-group">
+<label for="tempSlider">Absolyut harorat (T):</label>
+<div class="slider-container">
+<input type="range" id="tempSlider" min="200" max="500" value="300" step="1">
+<span class="temp-value" id="tempDisplay">300 K</span>
+</div>
+</div>
+<div class="metrics-grid">
+<div class="metric-card"><div class="title">Bosim (P)</div><div class="value">100 kPa <small style="font-size:.7rem;color:green">(CONST)</small></div></div>
+<div class="metric-card"><div class="title">Hajm (V)</div><div class="value" id="volDisplay">24.9 L</div></div>
+<div class="metric-card"><div class="title">Harorat o'zgarishi (ΔT)</div><div class="value" id="deltaTDisplay">0 K</div></div>
+<div class="metric-card work"><div class="title">Bajarilgan ish (A)</div><div class="value" id="workDisplay">0 J</div></div>
+</div>
+</div>
+</div>
+
+<div class="card theory-section">
+<div class="plan-item">
+<h2><span>1</span>Izojarayonlar tushunchasi</h2>
+<p>O'zgarmas massali ideal gaz holatini ifodalovchi uchta asosiy parametr mavjud: <span class="highlight">bosim (P)</span>, <span class="highlight">hajm (V)</span> va <span class="highlight">harorat (T)</span>.</p>
+<p style="margin-top:8px">Gazning massasi (<i>m</i> = const) o'zgarmas bo'lganda, parametrlardan biri o'zgarmas ushlanib, qolgan ikkitasining o'zgarishi bilan kechadigan jarayonlar <strong>izojarayonlar</strong> deyiladi.</p>
+</div>
+<div class="plan-item">
+<h2><span>2</span>Izobarik jarayon va Gey-Lussak qonuni</h2>
+<p><strong>Izobarik jarayon</strong> — o'zgarmas bosimda (<i>P</i> = const) kechadigan termodinamik jarayondir.</p>
+<p style="margin-top:6px">Gey-Lussak qonuniga ko'ra, o'zgarmas bosimda berilgan massali gazning hajmi uning absolyut haroratiga to'g'ri mutanosib:</p>
+<div class="formula-box">V / T = const &nbsp;&nbsp; yoki &nbsp;&nbsp; V₁ / T₁ = V₂ / T₂</div>
+<p>Harorat ortishi bilan gaz molekulalarining harakati kuchayadi. Bosim o'zgarmas qolishi uchun porshen yuqoriga siljiydi va gaz hajmi ortadi.</p>
+</div>
+<div class="plan-item">
+<h2><span>3</span>Izobarik jarayonda bajarilgan ish</h2>
+<p>Gaz qizdirilganda kengayadi va porshenni yuqoriga suradi. Bunda gaz tashqi kuchlarga qarshi <span class="highlight">mexanik ish</span> bajaradi.</p>
+<div class="formula-box">A = P · ΔV = P · (V₂ − V₁)</div>
+<p>Mendeleyev–Klapeyron tenglamasidan foydalanib:</p>
+<div class="formula-box">A = ν · R · ΔT</div>
+<ul>
+<li><strong>A</strong> — gaz bajargan ish (J)</li>
+<li><strong>P</strong> — o'zgarmas bosim (Pa)</li>
+<li><strong>ΔV</strong> — hajm o'zgarishi (m³)</li>
+<li><strong>ν</strong> — modda miqdori (mol)</li>
+<li><strong>R</strong> = 8.314 J/(mol·K)</li>
+</ul>
+</div>
+</div>
+</div>
+
+<script>
+const pistonCanvas=document.getElementById('pistonCanvas'),pCtx=pistonCanvas.getContext('2d');
+const graphCanvas=document.getElementById('graphCanvas'),gCtx=graphCanvas.getContext('2d');
+const slider=document.getElementById('tempSlider');
+const tempDisplay=document.getElementById('tempDisplay'),volDisplay=document.getElementById('volDisplay');
+const deltaTDisplay=document.getElementById('deltaTDisplay'),workDisplay=document.getElementById('workDisplay');
+const T0=300,P=100000,n=1,R=8.314;let T=300;
+let molecules=[];
+for(let i=0;i<35;i++) molecules.push({x:Math.random()*150+65,y:Math.random()*70+160,vx:(Math.random()-.5)*1.8,vy:(Math.random()-.5)*1.8});
+
+function volume(t){return n*R*t/P}
+function drawPiston(){
+pCtx.clearRect(0,0,280,320);
+const x=50,w=180,bottom=260,minH=80,maxH=200;
+const h=minH+((T-200)/300)*(maxH-minH),py=bottom-h;
+pCtx.fillStyle='rgba(231,76,60,.15)';pCtx.fillRect(x,py,w,h);
+pCtx.strokeStyle='#475569';pCtx.lineWidth=4;
+pCtx.beginPath();pCtx.moveTo(x,40);pCtx.lineTo(x,bottom);pCtx.lineTo(x+w,bottom);pCtx.lineTo(x+w,40);pCtx.stroke();
+pCtx.fillStyle='#94a3b8';pCtx.fillRect(x-5,py-8,w+10,16);
+pCtx.fillStyle='#475569';pCtx.fillRect(x+w/2-4,25,8,py-25);
+if(T>200){
+let f=(T-200)/300;
+pCtx.fillStyle='#f39c12';pCtx.beginPath();pCtx.moveTo(90,267);pCtx.quadraticCurveTo(140,267+28*f,190,267);pCtx.quadraticCurveTo(140,250-18*f,90,267);pCtx.fill();
+pCtx.fillStyle='#e74c3c';pCtx.beginPath();pCtx.moveTo(110,267);pCtx.quadraticCurveTo(140,267+18*f,170,267);pCtx.quadraticCurveTo(140,257-10*f,110,267);pCtx.fill();
+}
+const speed=.7+T/300;
+molecules.forEach(m=>{
+m.x+=m.vx*speed;m.y+=m.vy*speed;
+if(m.x<x+7||m.x>x+w-7)m.vx*=-1;
+if(m.y<py+8||m.y>bottom-8)m.vy*=-1;
+m.x=Math.max(x+7,Math.min(x+w-7,m.x));m.y=Math.max(py+8,Math.min(bottom-8,m.y));
+pCtx.fillStyle='#3498db';pCtx.beginPath();pCtx.arc(m.x,m.y,3,0,Math.PI*2);pCtx.fill();
+});
+pCtx.fillStyle='#2c3e50';pCtx.font='13px Arial';pCtx.fillText('P = const',88,18);pCtx.fillText('T = '+T+' K',92,305);
+}
+function drawGraph(){
+gCtx.clearRect(0,0,280,320);const L=45,B=275,Rg=260,Top=35;
+gCtx.strokeStyle='#334155';gCtx.lineWidth=2;gCtx.beginPath();gCtx.moveTo(L,Top);gCtx.lineTo(L,B);gCtx.lineTo(Rg,B);gCtx.stroke();
+gCtx.fillStyle='#334155';gCtx.font='12px Arial';gCtx.fillText('V (L)',8,48);gCtx.fillText('T (K)',225,298);
+gCtx.fillText('0',31,279);gCtx.fillText('200',68,294);gCtx.fillText('300',128,294);gCtx.fillText('500',232,294);
+gCtx.strokeStyle='#e74c3c';gCtx.lineWidth=3;gCtx.beginPath();
+for(let t=200;t<=500;t++){let x=L+(t-200)/(300)*(Rg-L),v=volume(t)*1000;let y=B-(v/50)*(B-Top);if(t===200)gCtx.moveTo(x,y);else gCtx.lineTo(x,y)}gCtx.stroke();
+let x=L+(T-200)/300*(Rg-L),y=B-(volume(T)*1000/50)*(B-Top);
+gCtx.fillStyle='#2980b9';gCtx.beginPath();gCtx.arc(x,y,6,0,Math.PI*2);gCtx.fill();
+gCtx.fillStyle='#334155';gCtx.fillText('V/T = const',90,25);
+}
+function update(){
+T=+slider.value;let V=volume(T),V0=volume(T0),dT=T-T0,A=P*(V-V0);
+tempDisplay.textContent=T+' K';volDisplay.textContent=(V*1000).toFixed(1)+' L';
+deltaTDisplay.textContent=(dT>=0?'+':'')+dT+' K';workDisplay.textContent=(A>=0?'+':'')+A.toFixed(1)+' J';
+drawPiston();drawGraph();
+}
+slider.addEventListener('input',update);
+update();
+setInterval(drawPiston,40);
+</script>
+</body>
+</html>
